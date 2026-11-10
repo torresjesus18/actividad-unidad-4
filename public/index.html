@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b2028">
+    <meta name="description" content="Chat grupal en tiempo real con Socket.IO.">
+    <title>RealTime Chat | Conversación en vivo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/socket.io/socket.io.js" defer></script>
+    <script src="/js/chat.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="chat-app" aria-label="Aplicación RealTime Chat">
+        <aside class="sidebar" aria-label="Panel de participantes">
+          <a class="brand" href="/" aria-label="RealTime Chat, inicio">
+            <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+              <path d="M5 19.5c4.2-7.3 8.3-7.3 12.5 0s8.3 7.3 12.5 0" />
+              <path d="M5 12.5c4.2-7.3 8.3-7.3 12.5 0s8.3 7.3 12.5 0" />
+            </svg>
+            <span>real<span class="brand-accent">time</span></span>
+          </a>
+          <div class="workspace-label">ESPACIO DE TRABAJO</div>
+          <div class="room-card">
+            <span class="room-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 12c2.2-3.8 4.5-3.8 6.7 0s4.5 3.8 6.7 0 4.5-3.8 6.6 0" /></svg>
+            </span>
+            <span><strong>conversación-general</strong><small>Chat abierto</small></span>
+            <span class="room-indicator" aria-hidden="true"></span>
+          </div>
+          <div class="people-heading">
+            <span>PARTICIPANTES</span>
+            <span class="user-count" id="user-count">0</span>
+          </div>
+          <ul class="user-list" id="user-list" aria-live="polite"></ul>
+          <div class="sidebar-bottom">
+            <div class="connection-card">
+              <span class="status-dot" id="connection-dot"></span>
+              <span><strong id="connection-label">Conectando...</strong><small>Conexión en tiempo real</small></span>
+            </div>
+            <div class="profile-card">
+              <div class="avatar avatar-self" id="profile-avatar">?</div>
+              <span class="profile-name" id="profile-name">Invitado</span>
+              <button class="icon-button" id="leave-button" type="button" aria-label="Cerrar sesión" title="Cerrar sesión">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3m9-8h6a2 2 0 012 2v12a2 2 0 01-2 2h-6"/></svg>
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        <section class="conversation" aria-label="Conversación">
+          <header class="conversation-header">
+            <div>
+              <div class="channel-title"><span class="channel-symbol" aria-hidden="true"></span> Sala abierta <span class="header-live"><span></span> EN VIVO</span></div>
+              <p>Un espacio para conversar en tiempo real</p>
+            </div>
+            <div class="header-people" aria-label="Participantes conectados">
+              <div class="avatar-stack" id="avatar-stack"></div>
+              <span id="header-user-count">0 conectados</span>
+            </div>
+          </header>
+
+          <div class="message-area" id="message-area" role="log" aria-label="Mensajes" aria-live="polite" aria-relevant="additions">
+            <div class="welcome-block" id="welcome-block">
+              <div class="welcome-icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32"><path d="M4 19c4-7 8-7 12 0s8 7 12 0M4 12c4-7 8-7 12 0s8 7 12 0" /></svg>
+              </div>
+              <p class="eyebrow">TU ESPACIO, EN TIEMPO REAL</p>
+              <h1>La conversación<br>empieza aquí.</h1>
+              <p class="welcome-copy">Conecta con tu equipo y comparte ideas al instante.<br>Sin recargar, sin esperas.</p>
+              <span class="date-divider"><span>HOY</span></span>
+            </div>
+            <div class="messages" id="messages"></div>
+          </div>
+
+          <div class="typing-line" id="typing-line" aria-live="polite"></div>
+          <form class="composer" id="message-form">
+            <div class="image-preview" id="image-preview" hidden>
+              <img id="image-preview-thumbnail" alt="Vista previa de la imagen seleccionada">
+              <span id="image-preview-name"></span>
+              <button class="remove-image-button" id="remove-image-button" type="button" aria-label="Quitar imagen">×</button>
+            </div>
+            <label class="sr-only" for="message-input">Escribe un mensaje</label>
+            <input id="message-input" name="message" maxlength="500" placeholder="Escribe un mensaje..." autocomplete="off" disabled>
+            <div class="composer-footer">
+              <span class="composer-hint">Sé amable y respetuoso con todos.</span>
+              <div class="composer-actions">
+                <input class="sr-only" id="image-input" type="file" accept="image/jpeg,image/png,image/webp" disabled>
+                <button class="attach-button" id="attach-button" type="button" aria-label="Adjuntar una imagen" title="Adjuntar una imagen" disabled>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                </button>
+                <span class="character-count" id="character-count">0 / 500</span>
+                <button class="send-button" id="send-button" type="submit" aria-label="Enviar mensaje" disabled>
+                  <span>Enviar</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                </button>
+              </div>
+            </div>
+          </form>
+          <div class="mobile-users" id="mobile-users" aria-live="polite"></div>
+        </section>
+      </section>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </main>
+
+    <dialog class="join-dialog" id="join-dialog">
+      <form class="join-form" id="join-form" method="dialog">
+        <div class="dialog-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><path d="M4 19c4-7 8-7 12 0s8 7 12 0M4 12c4-7 8-7 12 0s8 7 12 0" /></svg>
+        </div>
+        <p class="eyebrow">BIENVENIDO A REALTIME</p>
+        <h2>¿Cómo te llamas?</h2>
+        <p>Elige un nombre para que los demás sepan quién eres.</p>
+        <label for="username-input">Tu nombre</label>
+        <input id="username-input" name="username" minlength="2" maxlength="20" required autocomplete="nickname" placeholder="Ej. Alex">
+        <p class="form-error" id="join-error" role="alert"></p>
+        <button class="join-button" type="submit">Entrar al chat <span aria-hidden="true">→</span></button>
+      </form>
+    </dialog>
+  </body>
+</html>
